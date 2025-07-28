@@ -81,11 +81,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
     })),
 
   completeStreaming: () => {
-    console.log('completeStreaming called');
     const { currentStreamingMessage, currentStreamingMessageId, messages, pendingArtifacts } = get();
 
     if (currentStreamingMessageId && currentStreamingMessage) {
-      console.log('Adding completed message to chat');
       const newMessage: ChatMessage = {
         id: currentStreamingMessageId,
         content: currentStreamingMessage,
@@ -102,7 +100,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
         pendingArtifacts: [],
       });
     } else {
-      console.log('Clearing streaming state without message');
       set({
         isStreaming: false,
         currentStreamingMessage: '',
@@ -206,7 +203,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     });
   },
 
-  saveEditedMessage: (messageId: string, newContent: string) => {
+  saveEditedMessage: (_messageId: string, newContent: string) => {
     // Simply put the edited content in input field for sending as new message
     // Don't modify existing messages - just append the edited version
     // Note: messageId is kept for interface compatibility but not used

@@ -75,7 +75,6 @@ export class ChatApi {
     onComplete: () => void
   ): Promise<void> {
     try {
-      console.log('Starting stream request:', request);
       const response = await fetch(`${this.baseUrl}/stream`, {
         method: 'POST',
         headers: {
@@ -84,7 +83,6 @@ export class ChatApi {
         body: JSON.stringify(request),
       });
 
-      console.log('Response status:', response.status);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -94,19 +92,13 @@ export class ChatApi {
         throw new Error('No reader available');
       }
 
-      console.log('Starting to read stream...');
       const decoder = new TextDecoder();
       let buffer = '';
-      let chunkCount = 0;
 
       while (true) {
         const { done, value } = await reader.read();
-        chunkCount++;
-
-        console.log(`Chunk ${chunkCount}: done=${done}, value length=${value?.length || 0}`);
 
         if (done) {
-          console.log('Stream done, calling onComplete');
           onComplete();
           break;
         }
@@ -123,7 +115,6 @@ export class ChatApi {
               const data = line.slice(6); // Remove 'data: ' prefix
               if (data.trim()) {
                 const event: StreamEvent = JSON.parse(data);
-                console.log('Parsed event:', event);
                 onEvent(event);
               }
             } catch (e) {

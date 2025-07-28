@@ -65,8 +65,6 @@ const Chat: React.FC = () => {
   const handleSendMessage = useCallback(async () => {
     if (!inputMessage.trim() || isStreaming) return;
 
-    console.log('handleSendMessage called, isStreaming:', isStreaming);
-
     // Add user message to store
     addUserMessage(inputMessage);
     const userMessage = inputMessage;
@@ -77,20 +75,17 @@ const Chat: React.FC = () => {
 
     // Set up a timeout to prevent getting stuck in streaming state
     const streamTimeout = setTimeout(() => {
-      console.log('Stream timeout - forcing completion after 30 seconds');
       completeStreaming();
     }, 30000); // 30 second timeout
 
     // Start streaming
     try {
-      console.log('Starting stream with message:', userMessage);
       const cleanup = chatApi.streamMessage(
         {
           message: userMessage,
           conversation_id: currentConversationId || undefined
         },
         (event: StreamEvent) => {
-          console.log('Received stream event:', event);
           switch (event.type) {
             case 'ai_start':
               if (event.message_id && event.conversation_id) {
@@ -109,7 +104,6 @@ const Chat: React.FC = () => {
               }
               break;
             case 'ai_complete':
-              console.log('Completing streaming...');
               clearTimeout(streamTimeout);
               completeStreaming();
               break;
@@ -126,10 +120,8 @@ const Chat: React.FC = () => {
           completeStreaming();
         },
         () => {
-          console.log('Stream completed callback');
           clearTimeout(streamTimeout);
           // Always force completion on stream end to be safe
-          console.log('Forcing completion due to stream end');
           completeStreaming();
         }
       );
@@ -152,8 +144,6 @@ const Chat: React.FC = () => {
       // Directly send the message without putting it in input field
       if (isStreaming) return; // Don't resend if already streaming
 
-      console.log('Resending message:', message.content);
-
       // Add user message to store
       addUserMessage(message.content);
 
@@ -162,20 +152,17 @@ const Chat: React.FC = () => {
 
       // Set up timeout to prevent getting stuck
       const streamTimeout = setTimeout(() => {
-        console.log('Stream timeout - forcing completion after 30 seconds');
         completeStreaming();
       }, 30000);
 
       // Start streaming
       try {
-        console.log('Starting stream with resent message:', message.content);
         chatApi.streamMessage(
           {
             message: message.content,
             conversation_id: currentConversationId || undefined
           },
           (event: StreamEvent) => {
-            console.log('Received stream event:', event);
             switch (event.type) {
               case 'ai_start':
                 if (event.message_id && event.conversation_id) {
@@ -193,7 +180,6 @@ const Chat: React.FC = () => {
                 }
                 break;
               case 'ai_complete':
-                console.log('Completing streaming...');
                 clearTimeout(streamTimeout);
                 completeStreaming();
                 break;
@@ -210,7 +196,6 @@ const Chat: React.FC = () => {
             completeStreaming();
           },
           () => {
-            console.log('Stream completed');
             clearTimeout(streamTimeout);
             completeStreaming();
           }
@@ -245,7 +230,6 @@ const Chat: React.FC = () => {
     setInputMessage('');
 
     // Directly send the edited message without using input field
-    console.log('Sending edited message:', contentToSend);
 
     // Add user message to store
     addUserMessage(contentToSend);
@@ -255,20 +239,17 @@ const Chat: React.FC = () => {
 
     // Set up timeout to prevent getting stuck
     const streamTimeout = setTimeout(() => {
-      console.log('Stream timeout - forcing completion after 30 seconds');
       completeStreaming();
     }, 30000);
 
     // Start streaming
     try {
-      console.log('Starting stream with edited message:', contentToSend);
       chatApi.streamMessage(
         {
           message: contentToSend,
           conversation_id: currentConversationId || undefined
         },
         (event: StreamEvent) => {
-          console.log('Received stream event:', event);
           switch (event.type) {
             case 'ai_start':
               if (event.message_id && event.conversation_id) {
@@ -286,7 +267,6 @@ const Chat: React.FC = () => {
               }
               break;
             case 'ai_complete':
-              console.log('Completing streaming...');
               clearTimeout(streamTimeout);
               completeStreaming();
               break;
@@ -303,7 +283,6 @@ const Chat: React.FC = () => {
           completeStreaming();
         },
         () => {
-          console.log('Stream completed');
           clearTimeout(streamTimeout);
           completeStreaming();
         }
