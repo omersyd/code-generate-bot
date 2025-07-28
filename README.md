@@ -60,7 +60,7 @@ A full-stack AI coding assistant that replicates Claude's interface, built with 
 
 1. **Clone and navigate to project**
    ```bash
-   cd zocket
+   cd code-generate-bot
    ```
 
 2. **Backend Setup**
