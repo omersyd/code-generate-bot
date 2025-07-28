@@ -219,6 +219,7 @@ const getLanguageForHighlighter = (language: string): string => {
     'ruby': 'ruby',
     'go': 'go',
     'rust': 'rust',
+    'elixir': 'elixir',
     'swift': 'swift',
     'kotlin': 'kotlin',
   };
@@ -252,6 +253,7 @@ const getFileExtension = (language: string): string => {
     'ruby': 'rb',
     'go': 'go',
     'rust': 'rs',
+    'elixir': 'ex',
     'swift': 'swift',
     'kotlin': 'kt',
   };

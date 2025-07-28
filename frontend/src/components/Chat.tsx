@@ -217,7 +217,7 @@ const Chat: React.FC = () => {
                         onClick={() => handleSaveEdit(message.id)}
                         className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
                       >
-                        Save & Resend
+                        Resend
                       </button>
                       <button
                         onClick={cancelEditing}

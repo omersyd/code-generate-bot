@@ -48,38 +48,80 @@ class GeminiService:
     def detect_artifact_type(self, code: str, language: str) -> str:
         code_lower = code.lower()
 
-        if language == 'html' or any(tag in code_lower for tag in ['<html', '<body', '<div', '<head']):
+        # First, trust the explicitly declared language if it's a known type
+        if language:
+            language_lower = language.lower()
+            if language_lower in ['python', 'py']:
+                return 'python'
+            elif language_lower in ['javascript', 'js']:
+                return 'javascript'
+            elif language_lower in ['html']:
+                return 'html'
+            elif language_lower in ['css']:
+                return 'css'
+            elif language_lower in ['typescript', 'ts']:
+                return 'typescript'
+            elif language_lower in ['java']:
+                return 'java'
+            elif language_lower in ['cpp', 'c++']:
+                return 'cpp'
+            elif language_lower in ['c']:
+                return 'c'
+            elif language_lower in ['go', 'golang']:
+                return 'go'
+            elif language_lower in ['rust', 'rs']:
+                return 'rust'
+            elif language_lower in ['elixir', 'ex', 'exs']:
+                return 'elixir'
+
+        # Fallback to content-based detection if language is not specified or unknown
+        if any(tag in code_lower for tag in ['<html', '<body', '<div', '<head']):
             return 'html'
 
         if (
-            language == 'css'
-            or (
-                '{' in code
-                and '}' in code
-                and any(
-                    prop in code_lower
-                    for prop in [
-                        'color:',
-                        'background:',
-                        'margin:',
-                        'padding:'
-                    ]
-                )
+            '{' in code
+            and '}' in code
+            and any(
+                prop in code_lower
+                for prop in [
+                    'color:',
+                    'background:',
+                    'margin:',
+                    'padding:'
+                ]
             )
         ):
             return 'css'
 
-        if (
-            language in ['javascript', 'js']
-            or any(
-                keyword in code_lower
-                for keyword in ['function', 'const ', 'let ', 'var ', 'document.']
-            )
-        ):
-            return 'javascript'
-
-        if language == 'python' or any(keyword in code_lower for keyword in ['def ', 'import ', 'print(', 'class ']):
+        # Python detection - check for Python-specific keywords
+        if any(keyword in code_lower for keyword in [
+            'def ', 'import ', 'print(', 'class ', 'if __name__', 'from ', '# python'
+        ]):
             return 'python'
+
+        # Go detection - check for Go-specific keywords
+        if any(keyword in code_lower for keyword in [
+            'package ', 'func ', 'import ', 'var ', 'go ', 'defer ', 'chan ', 'goroutine'
+        ]):
+            return 'go'
+
+        # Rust detection - check for Rust-specific keywords
+        if any(keyword in code_lower for keyword in [
+            'fn ', 'let ', 'mut ', 'struct ', 'impl ', 'use ', 'extern crate', '&str'
+        ]):
+            return 'rust'
+
+        # Elixir detection - check for Elixir-specific keywords
+        if any(keyword in code_lower for keyword in [
+            'defmodule ', 'def ', 'defp ', 'end', 'do:', '|>', 'spawn', 'receive'
+        ]):
+            return 'elixir'
+
+        # JavaScript detection - only if not already detected as other languages
+        if any(keyword in code_lower for keyword in [
+            'function', 'const ', 'let ', 'var ', 'document.', 'console.log'
+        ]):
+            return 'javascript'
 
         if (
             'html' in code_lower
