@@ -23,7 +23,6 @@ const Chat: React.FC = () => {
     completeStreaming,
     setArtifacts,
     toggleRightSidebar,
-    resendMessage,
     startEditingMessage,
     cancelEditing,
     saveEditedMessage,
@@ -146,16 +145,83 @@ const Chat: React.FC = () => {
 
   // Handle resending a message
   const handleResendMessage = useCallback(async (messageId: string) => {
-    resendMessage(messageId);
-    // The resend logic puts the message content back in inputMessage
-    // We'll trigger sending after a brief delay to allow state to update
-    setTimeout(() => {
-      const state = useChatStore.getState();
-      if (state.inputMessage) {
-        handleSendMessage();
+    const state = useChatStore.getState();
+    const message = state.messages.find(m => m.id === messageId);
+
+    if (message && message.role === 'user' && message.content) {
+      // Directly send the message without putting it in input field
+      if (isStreaming) return; // Don't resend if already streaming
+
+      console.log('Resending message:', message.content);
+
+      // Add user message to store
+      addUserMessage(message.content);
+
+      // Set streaming state immediately
+      startStreaming('temp-id', 'temp-conversation-id');
+
+      // Set up timeout to prevent getting stuck
+      const streamTimeout = setTimeout(() => {
+        console.log('Stream timeout - forcing completion after 30 seconds');
+        completeStreaming();
+      }, 30000);
+
+      // Start streaming
+      try {
+        console.log('Starting stream with resent message:', message.content);
+        chatApi.streamMessage(
+          {
+            message: message.content,
+            conversation_id: currentConversationId || undefined
+          },
+          (event: StreamEvent) => {
+            console.log('Received stream event:', event);
+            switch (event.type) {
+              case 'ai_start':
+                if (event.message_id && event.conversation_id) {
+                  startStreaming(event.message_id, event.conversation_id);
+                }
+                break;
+              case 'ai_chunk':
+                if (event.content) {
+                  addStreamChunk(event.content);
+                }
+                break;
+              case 'artifacts':
+                if (event.artifacts) {
+                  setArtifacts(event.artifacts);
+                }
+                break;
+              case 'ai_complete':
+                console.log('Completing streaming...');
+                clearTimeout(streamTimeout);
+                completeStreaming();
+                break;
+              case 'error':
+                console.error('Stream error:', event.error);
+                clearTimeout(streamTimeout);
+                completeStreaming();
+                break;
+            }
+          },
+          (error: Error) => {
+            console.error('Stream error:', error);
+            clearTimeout(streamTimeout);
+            completeStreaming();
+          },
+          () => {
+            console.log('Stream completed');
+            clearTimeout(streamTimeout);
+            completeStreaming();
+          }
+        );
+      } catch (error) {
+        console.error('Error starting resend stream:', error);
+        clearTimeout(streamTimeout);
+        completeStreaming();
       }
-    }, 100);
-  }, [resendMessage, handleSendMessage]);
+    }
+  }, [isStreaming, currentConversationId, addUserMessage, startStreaming, addStreamChunk, completeStreaming, setArtifacts]);
 
   // Handle editing a message
   const handleEditMessage = useCallback((messageId: string, content: string) => {
@@ -164,15 +230,90 @@ const Chat: React.FC = () => {
 
   // Handle saving edited message
   const handleSaveEdit = useCallback(async (messageId: string) => {
-    saveEditedMessage(messageId, editingContent);
-    // After saving, the edited content is put in inputMessage
-    setTimeout(() => {
-      const state = useChatStore.getState();
-      if (state.inputMessage) {
-        handleSendMessage();
-      }
-    }, 100);
-  }, [saveEditedMessage, editingContent, handleSendMessage]);
+    if (!editingContent.trim() || isStreaming) return;
+
+    // Store the content before clearing the editing state
+    const contentToSend = editingContent;
+
+    // Save the edited message (this updates the store)
+    saveEditedMessage(messageId, contentToSend);
+
+    // Clear the editing state to close the edit box
+    cancelEditing();
+
+    // Clear the main input box as well
+    setInputMessage('');
+
+    // Directly send the edited message without using input field
+    console.log('Sending edited message:', contentToSend);
+
+    // Add user message to store
+    addUserMessage(contentToSend);
+
+    // Set streaming state immediately
+    startStreaming('temp-id', 'temp-conversation-id');
+
+    // Set up timeout to prevent getting stuck
+    const streamTimeout = setTimeout(() => {
+      console.log('Stream timeout - forcing completion after 30 seconds');
+      completeStreaming();
+    }, 30000);
+
+    // Start streaming
+    try {
+      console.log('Starting stream with edited message:', contentToSend);
+      chatApi.streamMessage(
+        {
+          message: contentToSend,
+          conversation_id: currentConversationId || undefined
+        },
+        (event: StreamEvent) => {
+          console.log('Received stream event:', event);
+          switch (event.type) {
+            case 'ai_start':
+              if (event.message_id && event.conversation_id) {
+                startStreaming(event.message_id, event.conversation_id);
+              }
+              break;
+            case 'ai_chunk':
+              if (event.content) {
+                addStreamChunk(event.content);
+              }
+              break;
+            case 'artifacts':
+              if (event.artifacts) {
+                setArtifacts(event.artifacts);
+              }
+              break;
+            case 'ai_complete':
+              console.log('Completing streaming...');
+              clearTimeout(streamTimeout);
+              completeStreaming();
+              break;
+            case 'error':
+              console.error('Stream error:', event.error);
+              clearTimeout(streamTimeout);
+              completeStreaming();
+              break;
+          }
+        },
+        (error: Error) => {
+          console.error('Stream error:', error);
+          clearTimeout(streamTimeout);
+          completeStreaming();
+        },
+        () => {
+          console.log('Stream completed');
+          clearTimeout(streamTimeout);
+          completeStreaming();
+        }
+      );
+    } catch (error) {
+      console.error('Error starting edited message stream:', error);
+      clearTimeout(streamTimeout);
+      completeStreaming();
+    }
+  }, [saveEditedMessage, editingContent, isStreaming, currentConversationId, addUserMessage, startStreaming, addStreamChunk, completeStreaming, setArtifacts, cancelEditing, setInputMessage]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -217,7 +358,7 @@ const Chat: React.FC = () => {
                         onClick={() => handleSaveEdit(message.id)}
                         className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
                       >
-                        Resend
+                        Save & Resend
                       </button>
                       <button
                         onClick={cancelEditing}
