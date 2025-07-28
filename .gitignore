@@ -1,0 +1,23 @@
+# Project-wide ignores
+.DS_Store
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+
+# Environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Documentation
+*.pdf
+assessment.pdf
+
+# Scripts (if you want to keep them local)
+# start_*.sh
