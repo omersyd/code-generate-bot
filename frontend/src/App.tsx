@@ -10,7 +10,7 @@ function App() {
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b p-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-gray-800">Claude-style AI Coding Agent</h1>
+        <h1 className="text-xl font-bold text-gray-800">Code Assist</h1>
         <div className="flex space-x-2">
           {artifacts.length > 0 && (
             <span className="text-sm text-gray-600 bg-gray-100 px-2 py-2 rounded">

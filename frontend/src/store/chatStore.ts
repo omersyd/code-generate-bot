@@ -21,6 +21,10 @@ interface ChatState {
   isRightSidebarOpen: boolean;
   currentViewMode: 'code' | 'preview';
 
+  // Edit state
+  editingMessageId: string | null;
+  editingContent: string;
+
   // Actions
   setInputMessage: (message: string) => void;
   startStreaming: (messageId: string, conversationId: string) => void;
@@ -33,6 +37,13 @@ interface ChatState {
   toggleRightSidebar: () => void;
   setViewMode: (mode: 'code' | 'preview') => void;
   clearChat: () => void;
+
+  // New actions for resend/edit
+  resendMessage: (messageId: string) => void;
+  startEditingMessage: (messageId: string, content: string) => void;
+  cancelEditing: () => void;
+  saveEditedMessage: (messageId: string, newContent: string) => void;
+  setEditingContent: (content: string) => void;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -48,6 +59,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
   inputMessage: '',
   isRightSidebarOpen: false,
   currentViewMode: 'code',
+  editingMessageId: null,
+  editingContent: '',
 
   // Actions
   setInputMessage: (message: string) =>
@@ -162,5 +175,49 @@ export const useChatStore = create<ChatState>((set, get) => ({
       inputMessage: '',
       isRightSidebarOpen: false,
       currentViewMode: 'code',
+      editingMessageId: null,
+      editingContent: '',
     }),
+
+  // New actions for resend/edit functionality
+  resendMessage: (messageId: string) => {
+    const state = get();
+    const message = state.messages.find(m => m.id === messageId);
+    if (message && message.role === 'user') {
+      // Simply put the message content back in input field for resending
+      // Don't remove any messages - just append when user sends
+      set({
+        inputMessage: message.content,
+      });
+    }
+  },
+
+  startEditingMessage: (messageId: string, content: string) => {
+    set({
+      editingMessageId: messageId,
+      editingContent: content,
+    });
+  },
+
+  cancelEditing: () => {
+    set({
+      editingMessageId: null,
+      editingContent: '',
+    });
+  },
+
+  saveEditedMessage: (messageId: string, newContent: string) => {
+    // Simply put the edited content in input field for sending as new message
+    // Don't modify existing messages - just append the edited version
+    // Note: messageId is kept for interface compatibility but not used
+    set({
+      editingMessageId: null,
+      editingContent: '',
+      inputMessage: newContent,
+    });
+  },
+
+  setEditingContent: (content: string) => {
+    set({ editingContent: content });
+  },
 }));

@@ -14,6 +14,8 @@ const Chat: React.FC = () => {
     isStreaming,
     currentStreamingMessage,
     currentConversationId,
+    editingMessageId,
+    editingContent,
     setInputMessage,
     addUserMessage,
     startStreaming,
@@ -21,6 +23,11 @@ const Chat: React.FC = () => {
     completeStreaming,
     setArtifacts,
     toggleRightSidebar,
+    resendMessage,
+    startEditingMessage,
+    cancelEditing,
+    saveEditedMessage,
+    setEditingContent,
   } = useChatStore();
 
   // Auto-scroll to bottom function
@@ -49,7 +56,7 @@ const Chat: React.FC = () => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  // Auto-scroll during streaming (more frequent, instant)
+    // Auto-scroll when streaming message updates
   useEffect(() => {
     if (isStreaming && currentStreamingMessage) {
       scrollToBottomInstant();
@@ -137,6 +144,36 @@ const Chat: React.FC = () => {
     }
   }, [inputMessage, isStreaming, currentConversationId, addUserMessage, setInputMessage, startStreaming, addStreamChunk, completeStreaming, setArtifacts]);
 
+  // Handle resending a message
+  const handleResendMessage = useCallback(async (messageId: string) => {
+    resendMessage(messageId);
+    // The resend logic puts the message content back in inputMessage
+    // We'll trigger sending after a brief delay to allow state to update
+    setTimeout(() => {
+      const state = useChatStore.getState();
+      if (state.inputMessage) {
+        handleSendMessage();
+      }
+    }, 100);
+  }, [resendMessage, handleSendMessage]);
+
+  // Handle editing a message
+  const handleEditMessage = useCallback((messageId: string, content: string) => {
+    startEditingMessage(messageId, content);
+  }, [startEditingMessage]);
+
+  // Handle saving edited message
+  const handleSaveEdit = useCallback(async (messageId: string) => {
+    saveEditedMessage(messageId, editingContent);
+    // After saving, the edited content is put in inputMessage
+    setTimeout(() => {
+      const state = useChatStore.getState();
+      if (state.inputMessage) {
+        handleSendMessage();
+      }
+    }, 100);
+  }, [saveEditedMessage, editingContent, handleSendMessage]);
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -157,14 +194,70 @@ const Chat: React.FC = () => {
             key={message.id}
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <div
-              className={`max-w-[80%] p-3 rounded-lg ${
-                message.role === 'user'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-900'
-              }`}
-            >
-              <div className="whitespace-pre-wrap">{message.content}</div>
+            <div className={`max-w-[80%] ${message.role === 'user' ? 'mr-2' : 'ml-2'}`}>
+              <div
+                className={`p-3 rounded-lg ${
+                  message.role === 'user'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-100 text-gray-900'
+                }`}
+              >
+                {editingMessageId === message.id ? (
+                  // Edit mode
+                  <div className="space-y-2">
+                    <textarea
+                      value={editingContent}
+                      onChange={(e) => setEditingContent(e.target.value)}
+                      className="w-full p-2 border rounded text-gray-900 resize-none"
+                      rows={3}
+                      autoFocus
+                    />
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleSaveEdit(message.id)}
+                        className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                      >
+                        Save & Resend
+                      </button>
+                      <button
+                        onClick={cancelEditing}
+                        className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  // Display mode
+                  <div className="whitespace-pre-wrap">{message.content}</div>
+                )}
+              </div>
+
+              {/* Action buttons for user messages (only in display mode) */}
+              {message.role === 'user' && editingMessageId !== message.id && (
+                <div className="flex space-x-1 mt-1 justify-end">
+                  <button
+                    onClick={() => handleEditMessage(message.id, message.content)}
+                    className="px-2 py-1 text-xs text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded"
+                    title="Edit message"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => handleResendMessage(message.id)}
+                    className="px-2 py-1 text-xs text-gray-500 hover:text-green-500 hover:bg-green-50 rounded"
+                    title="Resend message"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Artifacts for AI messages */}
               {message.artifacts && message.artifacts.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-gray-200">
                   <button
