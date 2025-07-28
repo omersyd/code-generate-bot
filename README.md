@@ -1,6 +1,6 @@
 # AI Coding Agent - Claude Style
 
-A full-stack AI coding assistant that replicates Claude's interface, built with React and FastAPI, powered by Google's Gemini 2.5 API with LangGraph memory.
+A full-stack AI coding assistant that replicates Claude's interface, built with React and FastAPI, powered by Google's Gemini 2.0 API with LangGraph memory.
 
 ## 🚀 Features
 
@@ -45,7 +45,7 @@ A full-stack AI coding assistant that replicates Claude's interface, built with 
 
 ### Backend
 - **FastAPI** with Python 3.12+
-- **Gemini 2.5 Flash** (free tier)
+- **Gemini 2.0 Flash** (free tier)
 - **LangGraph** for conversation memory and state management
 - **Server-Sent Events** streaming responses
 - **Pydantic** for data validation
