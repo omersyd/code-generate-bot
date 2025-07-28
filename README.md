@@ -10,6 +10,8 @@ A full-stack AI coding assistant that replicates Claude's interface, built with 
 - **Conversation Memory**: Persistent conversation context using LangGraph
 - **Download System**: Individual and bulk artifact download with proper file extensions
 - **Auto-scroll Chat**: Automatic scrolling to latest messages with timeout protection
+- **Message Management**: Edit and resend messages with one-click functionality
+- **Smart Language Detection**: Automatic programming language detection with extensible support
 - **Modern Stack**: React + TypeScript, TailwindCSS, FastAPI, Zustand state management
 
 ## 📁 Project Structure
@@ -120,6 +122,9 @@ A full-stack AI coding assistant that replicates Claude's interface, built with 
 - Conversation memory using LangGraph for context persistence
 - Auto-scroll chat functionality with timeout protection
 - Download system for individual and bulk artifacts
+- **Message editing and resending**: Edit user messages and resend with one-click
+- **Intelligent language detection**: Improved detection system with priority-based classification
+- **UX improvements**: Streamlined resend/edit workflow, proper input clearing
 - Proper error handling and loading states
 - CORS configuration for cross-origin requests
 - Git repository setup with proper .gitignore files
@@ -135,6 +140,8 @@ A full-stack AI coding assistant that replicates Claude's interface, built with 
 - **Artifact Sidebar Scrolling**: Fixed nested overflow issues with proper flex layout and overflow-auto containers
 - **Chat Auto-scroll**: Implemented useRef-based scrolling with timeout protection to prevent stuck states
 - **Sending State Management**: Immediate UI feedback by setting streaming state before API calls
+- **Message Interaction**: Added edit and resend functionality with intuitive button placement and one-click operation
+- **Input Field Management**: Proper clearing of input fields after edit/resend operations
 
 ### 3. **Backend Integration**
 - **Memory Management**: LangGraph integration for conversation persistence across requests
@@ -147,10 +154,10 @@ A full-stack AI coding assistant that replicates Claude's interface, built with 
 - **User-Centric Fixes**: Addressed specific UI problems like scroll behavior and loading states
 
 ### 5. **Feature Enhancement Process**
-1. **Problem Identification**: User reported specific issues (scrolling, auto-scroll, download needs)
-2. **Root Cause Analysis**: Investigated technical causes (overflow conflicts, state management)
+1. **Problem Identification**: User reported specific issues (scrolling, auto-scroll, download needs, language detection accuracy)
+2. **Root Cause Analysis**: Investigated technical causes (overflow conflicts, state management, detection priority algorithms)
 3. **Solution Implementation**: Applied targeted fixes with proper testing
-4. **User Experience Polish**: Added icons, tooltips, and visual feedback
+4. **User Experience Polish**: Added edit/resend functionality, icons, tooltips, and visual feedback
 
 ## 📝 API Endpoints
 
@@ -183,7 +190,7 @@ The application follows a clean separation of concerns:
 - **Type Safety**: Full TypeScript integration with proper type definitions
 - **Error Handling**: Comprehensive error handling at API and UI levels
 - **Git Integration**: Proper version control with multi-environment .gitignore setup
-- **Debugging**: Console logging for streaming events and state changes
+- **Message Interactions**: Edit and resend functionality with proper state management
 
 ### Key Implementation Details
 - **Streaming**: Server-Sent Events with chunked JSON responses
@@ -191,19 +198,5 @@ The application follows a clean separation of concerns:
 - **UI State**: Zustand store for real-time UI updates and artifact management
 - **File Downloads**: Blob API integration with proper MIME type handling
 - **Auto-scroll**: Ref-based scroll management with timeout protection
-
-## 🚀 Next Steps & Potential Enhancements
-
-### Immediate Improvements
-- **Database Integration**: Add PostgreSQL/SQLite for persistent conversation history
-- **User Authentication**: Implement user sessions and conversation ownership
-- **Enhanced Downloads**: ZIP file support for multi-file artifact downloads
-- **Code Execution**: Safe code execution environment for testing generated code
-
-### Advanced Features
-- **File Upload**: Support for code file uploads and analysis
-- **Project Templates**: Pre-built project scaffolding templates
-- **Collaborative Features**: Multiple users working on the same conversation
-- **Export Options**: PDF/Markdown export of conversations with artifacts
-
-Ready for production deployment and further feature development!
+- **Message Management**: Edit/resend functionality with direct streaming, bypassing input field dependencies
+- **Language Detection**: Comprehensive language detection system with proper syntax highlighting and file extensions
